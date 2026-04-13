@@ -1,12 +1,12 @@
 bimg_root = '../../bimg/'
 
 bimg_inc = include_directories([
-    bimg_root + 'include',
-    bimg_root + '3rdparty',
-    bimg_root + '3rdparty/astc-encoder',
-    bimg_root + '3rdparty/astc-encoder/include',
-    bimg_root + '3rdparty/tinyexr/deps/miniz',
-  ])
+  bimg_root + 'include',
+  bimg_root + '3rdparty',
+  bimg_root + '3rdparty/astc-encoder',
+  bimg_root + '3rdparty/astc-encoder/include',
+  bimg_root + '3rdparty/tinyexr/deps',
+])
 
 bimg_lib = static_library('bimg', [
     bimg_root + '3rdparty/tinyexr/deps/miniz/miniz.c',
@@ -14,9 +14,7 @@ bimg_lib = static_library('bimg', [
     bimg_root + 'src/image_gnf.cpp'
   ],
   include_directories: bimg_inc,
-  dependencies: [
-    bx_dep
-  ],
+  dependencies: bx_dep,
 )
 
 bimg_decode_lib = static_library('bimg_decode', [
@@ -101,7 +99,7 @@ bimg_encode_lib = static_library('bimg_encode', [
     bimg_root + '3rdparty/astc-encoder/include',
     bimg_root + '3rdparty/nvtt',
     bimg_root + '3rdparty/iqa/include',
-    bimg_root + '3rdparty/tinyexr/deps/miniz',
+    bimg_root + '3rdparty/tinyexr/deps',
   ],
   dependencies: bx_dep,
 )
