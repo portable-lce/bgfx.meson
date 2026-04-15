@@ -14,6 +14,10 @@ if host_machine.system() == 'linux' and get_option('with_wayland')
   bgfx_args += '-DWL_EGL_PLATFORM=1'
 endif
 
+if host_machine.system() == 'darwin'
+  bgfx_args += '-xobjective-c++'
+endif
+
 bgfx_lib = static_library('bgfx', [
     bgfx_root + 'src/bgfx.cpp',
     bgfx_root + 'src/debug_renderdoc.cpp',

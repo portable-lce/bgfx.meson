@@ -1,7 +1,14 @@
 bx_root = '../../bx/'
+
+if host_machine.system() == 'darwin'
+  compat_dir = 'include/compat/osx'
+else
+  compat_dir = 'include/compat/linux'
+endif
+
 bx_inc = include_directories([
   bx_root + 'include',
-  bx_root + 'include/compat/linux', 
+  bx_root + compat_dir, 
   bx_root + '3rdparty/',
 ])
 
