@@ -1,12 +1,19 @@
 bgfx_root = '../../bgfx/'
-bgfx_inc = include_directories([
+
+# WSL DirectX stubs provide rpcndr.h / basetsd.h etc. for Linux cross-
+# compile. On native Windows these conflict with the real SDK headers
+# and must NOT be on the include path.
+bgfx_inc_dirs = [
   bgfx_root + 'include',
   bgfx_root + '3rdparty',
   bgfx_root + '3rdparty/directx-headers/include',
   bgfx_root + '3rdparty/directx-headers/include/directx',
-  bgfx_root + '3rdparty/directx-headers/include/wsl/stubs',
   bgfx_root + '3rdparty/khronos',
-])
+]
+if host_machine.system() != 'windows'
+  bgfx_inc_dirs += bgfx_root + '3rdparty/directx-headers/include/wsl/stubs'
+endif
+bgfx_inc = include_directories(bgfx_inc_dirs)
 
 bgfx_args = []
 
