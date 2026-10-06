@@ -3,29 +3,78 @@ bimg_root = '../../bimg/'
 bimg_inc = include_directories([
   bimg_root + 'include',
   bimg_root + '3rdparty',
-  bimg_root + '3rdparty/astc-encoder',
   bimg_root + '3rdparty/astc-encoder/include',
   bimg_root + '3rdparty/tinyexr/deps',
 ])
 
+bimg_astc_sources = [
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_averages_and_directions.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_block_sizes.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_color_quantize.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_color_unquantize.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_compress_symbolic.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_compute_variance.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_decompress_symbolic.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_diagnostic_trace.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_entry.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_find_best_partitioning.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_ideal_endpoints_and_weights.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_image.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_integer_sequence.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_mathlib.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_mathlib_softfloat.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_partition_tables.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_percentile_tables.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_pick_best_endpoint_format.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_quantization.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_symbolic_physical.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_weight_align.cpp',
+  bimg_root + '3rdparty/astc-encoder/source/astcenc_weight_quant_xfer_tables.cpp',
+]
+
+bimg_astc_args = ['-DASTCENC_F16C=0', '-DASTCENC_NEON=0']
+
 bimg_lib = static_library('bimg', [
-    bimg_root + '3rdparty/tinyexr/deps/miniz/miniz.c',
     bimg_root + 'src/image.cpp',
-    bimg_root + 'src/image_gnf.cpp'
+    bimg_root + 'src/bimg_p.h',
+    bimg_root + 'src/config.h',
+    bimg_astc_sources,
   ],
   include_directories: bimg_inc,
   dependencies: bx_dep,
+  cpp_args: bimg_astc_args,
 )
+
+bimg_decode_inc_dirs = [
+  bimg_root + 'include',
+  bimg_root + '3rdparty',
+  bimg_root + '3rdparty/tinyexr/deps',
+  bimg_root + '3rdparty/libavif',
+  bimg_root + '3rdparty/libavif/include',
+  bimg_root + '3rdparty/libavif/third_party/libyuv/include',
+  bimg_root + '3rdparty/dav1d',
+  bimg_root + '3rdparty/dav1d/include',
+]
+if host_machine.system() == 'windows'
+  bimg_decode_inc_dirs += bimg_root + '3rdparty/dav1d/include/compat/msvc'
+endif
+bimg_decode_inc = include_directories(bimg_decode_inc_dirs)
 
 bimg_decode_lib = static_library('bimg_decode', [
     bimg_root + 'src/image_decode.cpp',
+    bimg_root + 'src/image_decode_wic.cpp',
+    bimg_root + '3rdparty/dav1d/dav1d-amalgamated.c',
+    bimg_root + '3rdparty/dav1d/dav1d-bitdepth-8.c',
+    bimg_root + '3rdparty/dav1d/dav1d-bitdepth-16.c',
+    bimg_root + '3rdparty/libavif/libavif-amalgamated.c',
   ],
-  include_directories:  bimg_inc,
+  include_directories: bimg_decode_inc,
   dependencies: bx_dep,
+  c_args: ['-DAVIF_CODEC_DAV1D'],
+  cpp_args: ['-DAVIF_CODEC_DAV1D'],
 )
 
 bimg_encode_lib = static_library('bimg_encode', [
-    bimg_root + '3rdparty/tinyexr/deps/miniz/miniz.c',
     bimg_root + '3rdparty/pvrtc/PvrTcEncoder.cpp',
     bimg_root + '3rdparty/pvrtc/PvrTcPacket.cpp',
     bimg_root + '3rdparty/pvrtc/MortonTable.cpp',
@@ -57,6 +106,9 @@ bimg_encode_lib = static_library('bimg_encode', [
     bimg_root + '3rdparty/libsquish/clusterfit.cpp',
     bimg_root + '3rdparty/libsquish/colourblock.cpp',
     bimg_root + '3rdparty/libsquish/alpha.cpp',
+    bimg_root + '3rdparty/etcpak/Dither.cpp',
+    bimg_root + '3rdparty/etcpak/ProcessRGB.cpp',
+    bimg_root + '3rdparty/etcpak/Tables.cpp',
     bimg_root + '3rdparty/iqa/source/ssim.c',
     bimg_root + '3rdparty/iqa/source/decimate.c',
     bimg_root + '3rdparty/iqa/source/math_utils.c',
@@ -64,32 +116,8 @@ bimg_encode_lib = static_library('bimg_encode', [
     bimg_root + '3rdparty/iqa/source/mse.c',
     bimg_root + '3rdparty/iqa/source/psnr.c',
     bimg_root + '3rdparty/iqa/source/convolve.c',
-    bimg_root + '3rdparty/etc2/ProcessRGB.cpp',
-    bimg_root + '3rdparty/etc2/Tables.cpp',
     bimg_root + '3rdparty/etc1/etc1.cpp',
     bimg_root + '3rdparty/edtaa3/edtaa3func.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_averages_and_directions.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_block_sizes.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_color_quantize.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_color_unquantize.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_compress_symbolic.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_compute_variance.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_decompress_symbolic.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_diagnostic_trace.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_entry.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_find_best_partitioning.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_ideal_endpoints_and_weights.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_image.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_integer_sequence.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_mathlib_softfloat.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_mathlib.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_partition_tables.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_percentile_tables.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_pick_best_endpoint_format.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_quantization.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_symbolic_physical.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_weight_align.cpp',
-    bimg_root + '3rdparty/astc-encoder/source/astcenc_weight_quant_xfer_tables.cpp',
     bimg_root + 'src/image_encode.cpp',
     bimg_root + 'src/image_cubemap_filter.cpp',
   ],
@@ -99,9 +127,10 @@ bimg_encode_lib = static_library('bimg_encode', [
     bimg_root + '3rdparty/astc-encoder/include',
     bimg_root + '3rdparty/nvtt',
     bimg_root + '3rdparty/iqa/include',
-    bimg_root + '3rdparty/tinyexr/deps',
+    bimg_root + '3rdparty/tinyexr/deps/miniz',
   ],
   dependencies: bx_dep,
+  cpp_args: bimg_astc_args,
 )
 
 bimg_dep = declare_dependency(
